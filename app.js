@@ -1,9 +1,10 @@
 const bodyParser = require('body-parser')
 const request = require('request')
 const express = require('express')
-
+const https = require('https')
+const fs = require('fs')
 const app = express()
-const port = process.env.PORT || 4000
+const port = 443;
 const hostname = '127.0.0.1'
 const HEADERS = {
 	'Content-Type': 'application/json',
@@ -12,6 +13,15 @@ const HEADERS = {
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+
+app.get('/', (req, res) => {
+	res.send('Hello HTTPS!')
+  })
+  
+
+app.get("/test", (req, res) => {
+	res.send("Test");
+})
 
 // Push
 app.get('/webhook', (req, res) => {
@@ -34,6 +44,7 @@ app.post('/webhook', (req, res) => {
 	else {
 		msg = req.body.events[0].message.text
 	}
+	// msg = req.body.events[0].message.text
 	console.log(req.body)
 	reply(reply_token, msg)
 	// push(msg)
@@ -42,7 +53,7 @@ app.post('/webhook', (req, res) => {
 
 function push(msg) {
 	let body = JSON.stringify({
-		to: 'U519c4def90991387e56573e0c870baf5',
+		to: 'Uf180e91f325d946153ad988c5cc7972c',
 		messages: [
 			{
 				type: 'text',
@@ -81,6 +92,10 @@ function curl(method, body) {
 	})
 }
 
-app.listen(port, hostname, () => {
-	console.log(`Server running at http://${hostname}:${port}/`)
-})
+https.createServer({
+	key: fs.readFileSync('/etc/letsencrypt/live/tesatopgun07.ddns.net/privkey.pem'),
+	// cert: fs.readFileSync('/etc/letsencrypt/path/to/cert.pem'),
+	cert: fs.readFileSync('/etc/letsencrypt/live/tesatopgun07.ddns.net/fullchain.pem')
+  }, app).listen(443, () => {
+	console.log('Listening...')
+  })
